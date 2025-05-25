@@ -8,4 +8,6 @@ router.post("/add",verifyToken,addTravelStory)
 
 router.get("/get-all",verifyToken,getAllTravelStory)
 
+router.post("/image-upload",imageUpload)
+
 export default router
