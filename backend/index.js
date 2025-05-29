@@ -27,7 +27,7 @@ app.listen(3000, () => {
 
 app.use("/api/auth", authRoutes)
 app.use("/api/user",userRoutes)
-app.use("api/travel-story",travelStoryRoutes)
+app.use("/api/travel-story", travelStoryRoutes)
 
 // server static file from uplads and assets directory
 const __fileName = fileURLToPath(import.meta.url)

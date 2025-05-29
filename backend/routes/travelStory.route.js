@@ -7,7 +7,7 @@ const router = express.Router()
 
 router.post("/image-upload",upload.single("image"),imageUpload)
 
-router.post("/add",verifyToken,addTravelStory)
+router.post("/add", verifyToken, addTravelStory)
 
 router.get("/get-all",verifyToken,getAllTravelStory)
 

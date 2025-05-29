@@ -1,37 +1,40 @@
+import { fileURLToPath } from "url"
+import TravelStory from "../models/travelStory.model.js"
 import { errorHandler } from "../utils/error.js"
+import path from "path"
+import fs from "fs"
 
 export const addTravelStory = async (req, res, next) => {
-    const { title, story, visitedLocation, imageUrl, visitedDate } = req.body
+  const { title, story, visitedLocation, imageUrl, visitedDate } = req.body
 
-    const userId = req.user.id
+  const userId = req.user.id
+  //   validate required field
+  if (!title || !story || !visitedLocation || !imageUrl || !visitedDate) {
+    return next(errorHandler(400, "All fields are required"))
+  }
 
-    // validate required field
+  //   convert visited date from milliseconds to Date Object
+  const parsedVisitedDate = new Date(parseInt(visitedDate))
 
-    if (!title, !story, !visitedLocation, !imageUrl, !visitedDate) {
-        return res.status(errorHandler(401, "All fields are required"))
-    }
+  try {
+    const travelStory = new TravelStory({
+      title,
+      story,
+      visitedLocation,
+      userId,
+      imageUrl,
+      visitedDate: parsedVisitedDate,
+    })
 
-    const parseVisitedDate = new Date(parseInt(visitedDate))
+    await travelStory.save()
 
-    try {
-        const travelStory = new TravelStory({
-            title,
-            story,
-            visitedLocation,
-            userId,
-            imageUrl,
-            visitedDate: parseVisitedDate
-        })
-
-        await travelStory.save()
-
-        res.status(200).json({
-            story: travelStory,
-            message: "Story added successfully"
-        })
-    } catch (err) {
-        console.log(err)
-    }
+    res.status(201).json({
+      story: travelStory,
+      message: "You story is added successfully!",
+    })
+  } catch (error) {
+    next(error)
+  }
 }
 
 export const getAllTravelStory = async (req, res, next) => {
@@ -49,18 +52,18 @@ export const getAllTravelStory = async (req, res, next) => {
 }
 
 
-export const imageUpload = async(req,res,next)=>{
-    try{
+export const imageUpload = async (req, res, next) => {
+    try {
 
-        if(!req.file){
-            return next(errorHandler(400,"No image upladed"))
+        if (!req.file) {
+            return next(errorHandler(400, "No image upladed"))
         }
 
         const imageUrl = `http://localhost:3000/uploads/${req.file.filename}`
 
-        res.status(201).json({imageUrl})
-        
-    }catch(error){
+        res.status(201).json({ imageUrl })
+
+    } catch (error) {
         next(error)
     }
 }
