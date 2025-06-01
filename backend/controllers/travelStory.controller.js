@@ -4,6 +4,8 @@ import { errorHandler } from "../utils/error.js"
 import path from "path"
 import fs from "fs"
 import { response } from "express"
+import { error } from "console"
+import { title } from "process"
 
 export const addTravelStory = async (req, res, next) => {
   const { title, story, visitedLocation, imageUrl, visitedDate } = req.body
@@ -141,4 +143,119 @@ export const editTravelStory = async (req, res, next) => {
   } catch (error) {
     next(error)
   }
-} 
+}
+
+
+export const deleteTravelStory = async (req, res, next) => {
+  const { id } = req.params
+  const userId = req.user.id
+
+  try {
+
+    const travelStory = await TravelStory.findOne({ _id: id, userId })
+
+    if (!travelStory) {
+      next(errorHandler(404, "Travel Story is not found !"))
+    }
+
+    // delete travel story from the database
+    await travelStory.deleteOne({ _id: id, userId: userId })
+
+    // Extract the image url fro database
+    const imageUrl = travelStory.imageUrl
+    const filename = path.basename(imageUrl)
+
+    // delete the file path
+    const filePath = path.join(rootDir, "uploads", filename)
+
+    // check the file Exist
+    if (!fs.existsSync(filePath)) {
+      return next(errorHandler(404, "Image not found"))
+    }
+
+    // delete the file
+    await fs.promises.unlink(filePath)
+
+    res.status.json({
+      message: "Travel Story Deleted Succesfullly"
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+
+export const updateIsFavaorite = async (req, res, next) => {
+  const { id } = req.params
+  const { isFavourite } = req.body
+  const userId = user.req.id
+
+
+  try {
+    const travelStory = await TravelStory.findOne({ _id: id, userId: userId })
+    if (!travelStory) {
+      return next(errorHandler(404, "Travel story not found !"))
+    }
+
+    travelStory.isFavorite = isFavourite
+
+    await travelStory.save()
+
+    res.status(200).json({
+      story: travelStory,
+      message: "Updated Successfully !"
+    })
+
+  } catch (error) {
+    next(error)
+  }
+}
+
+
+export const searchTravelStory = async (req, res, next) => {
+  const { query } = req.query
+  const userId = req.user.id
+
+  if (!query) {
+    return next(errorHandler(404, "Queries are required"))
+  }
+
+  try {
+    const seaarchResult = await TravelStory.find({
+      userId: userId,
+      $or: [
+        { title: { $regex: query, $options: "i" } },
+        { story: { $regex: query, $options: "i" } },
+        { visitedLocation: { $regex: query, $options: "i" } }
+
+      ],
+    }).sort({ isFavorite: -1 })
+
+    res.status(200).json({
+      stories: seaarchResult
+    })
+
+  } catch (error) {
+    next(error)
+  }
+}
+
+
+export const filterTravelStory = async (req, res, next) => {
+  const { startDate, endDate } = req.query
+  const userId = req.user.id
+
+  try {
+    const start = new Date(parseInt(startDate))
+    const end = new Date(parseInt(endDate))
+
+    const filteredStories = await TravelStory.find({
+      userId: userId,
+      visitedDate: { $gte: start, $lte: end }
+    }).sort({ isFavorite: -1 })
+
+    res.status(200).json({ stories: filteredStories })
+  } catch (err) {
+    next(error)
+  }
+}
