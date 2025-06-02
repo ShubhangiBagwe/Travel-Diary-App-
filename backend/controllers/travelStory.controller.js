@@ -152,7 +152,7 @@ export const deleteTravelStory = async (req, res, next) => {
 
   try {
 
-    const travelStory = await TravelStory.findOne({ _id: id, userId })
+    const travelStory = await TravelStory.findOne({ _id: id, userId: userId })
 
     if (!travelStory) {
       next(errorHandler(404, "Travel Story is not found !"))
@@ -161,8 +161,11 @@ export const deleteTravelStory = async (req, res, next) => {
     // delete travel story from the database
     await travelStory.deleteOne({ _id: id, userId: userId })
 
+    // Check if the image is not a placeholder before deleting
+    const placeholderImageUrl = `http://localhost:3000/assets/placeholderImage.png`
     // Extract the image url fro database
     const imageUrl = travelStory.imageUrl
+
     const filename = path.basename(imageUrl)
 
     // delete the file path
@@ -176,9 +179,8 @@ export const deleteTravelStory = async (req, res, next) => {
     // delete the file
     await fs.promises.unlink(filePath)
 
-    res.status.json({
-      message: "Travel Story Deleted Succesfullly"
-    })
+    res.status(200).json({ message: "Travel story deleted successfully!" })
+
   } catch (error) {
     next(error)
   }
@@ -188,7 +190,7 @@ export const deleteTravelStory = async (req, res, next) => {
 export const updateIsFavaorite = async (req, res, next) => {
   const { id } = req.params
   const { isFavourite } = req.body
-  const userId = user.req.id
+  const userId = req.user.id
 
 
   try {
@@ -241,7 +243,7 @@ export const searchTravelStory = async (req, res, next) => {
 }
 
 
-export const filterTravelStory = async (req, res, next) => {
+export const filterTravelStories = async (req, res, next) => {
   const { startDate, endDate } = req.query
   const userId = req.user.id
 
@@ -251,11 +253,11 @@ export const filterTravelStory = async (req, res, next) => {
 
     const filteredStories = await TravelStory.find({
       userId: userId,
-      visitedDate: { $gte: start, $lte: end }
+      visitedDate: { $gte: start, $lte: end },
     }).sort({ isFavorite: -1 })
 
     res.status(200).json({ stories: filteredStories })
-  } catch (err) {
+  } catch (error) {
     next(error)
   }
 }
