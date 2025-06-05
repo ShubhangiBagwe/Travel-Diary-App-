@@ -17,7 +17,7 @@ const PasswordInput = ({ value, onChange, placeholder }) => {
         className="w-full text-sm bg-transparent py-3 mr-3 rounded-sm outline-hidden"
         type={isShowPassword ? "text" : "password"}
       />
-
+ 
       {isShowPassword ? (
         <FaRegEye
           size={22}

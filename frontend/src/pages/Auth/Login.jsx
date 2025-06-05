@@ -1,77 +1,53 @@
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import PasswordInput from "../../components/PasswordInput"
 import { useNavigate } from "react-router-dom"
-// import axiosInstance from "../../utils/axiosInstance"
-// import { validateEmail } from "../../utils/helper"
-// import { useDispatch, useSelector } from "react-redux"
-// import {
-//   signInFailure,
-//   signInStart,
-//   signInSuccess,
-// } from "../../redux/slice/userSlice"
+import axiosInstance from "../../utils/axiosInstance"
+import { validateEmail } from "../../utils/helper"
 
 const Login = () => {
   const navigate = useNavigate()
-  // const dispatch = useDispatch()
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
 
-  // const { loading, currentUser } = useSelector((state) => state.user)
-
   const handleSubmit = async (e) => {
-    // e.preventDefault()
+    e.preventDefault()
 
-    // if (!validateEmail(email)) {
-    //   setError("Please enter a valid email address.")
-    //   return
-    // }
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address.")
+      return
+    }
 
-    // if (!password) {
-    //   setError("Please enter your password.")
-    //   return
-    // }
+    if (!password) {
+      setError("Please enter your password.")
+      return
+    }
 
-    // setError(null)
+    setError(null)
 
-    // // Login API call
-    // try {
-    //   dispatch(signInStart())
+    // Login API call
+    try {
+      const response = await axiosInstance.post("/auth/signin", {
+        email,
+        password,
+      })
 
-    //   const response = await axiosInstance.post("/auth/signin", {
-    //     email,
-    //     password,
-    //   })
-
-    //   if (response.data) {
-    //     dispatch(signInSuccess(response.data))
-    //     navigate("/")
-    //   } else {
-    //     dispatch(signInFailure("An unexpected error occurred!"))
-    //   }
-    // } catch (error) {
-    //   dispatch(signInFailure("An unexpected error occurred!"))
-
-    //   if (
-    //     error.response &&
-    //     error.response.data &&
-    //     error.response.data.message
-    //   ) {
-    //     setError(error.response.data.message)
-    //   } else {
-    //     setError("Something went wrong. Please try again.")
-    //   }
-    // }
-
-    console.log("Submit")
+      if (response.data) {
+        navigate("/")
+      }
+    } catch (error) {
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        setError(error.response.data.message)
+      } else {
+        setError("Something went wrong. Please try again.")
+      }
+    }
   }
-
-  // useEffect(() => {
-  //   if (!loading && currentUser) {
-  //     navigate("/")
-  //   }
-  // }, [currentUser])
 
   return (
     <div className="h-screen bg-cyan-50 overflow-hidden relative">
@@ -111,15 +87,9 @@ const Login = () => {
 
             {error && <p className="text-red-500 text-xs pb-1">{error}</p>}
 
-            {/* {loading ? (
-              <p className="animate-pulse w-full text-center btn-primary">
-                LOADING...
-              </p>
-            ) : ( */}
-              <button type="submit" className="btn-primary">
-                LOGIN
-              </button>
-            {/* )} */}
+            <button type="submit" className="btn-primary">
+              LOGIN
+            </button>
 
             <p className="text-xs text-slate-500 text-center my-4">Or</p>
 
